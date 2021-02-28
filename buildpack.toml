@@ -6,7 +6,7 @@ homepage = "https://github.com/petermylemans/elastic-apm"
 name = "Paketo Elastic-Apm Buildpack"
 
 [metadata]
-include-files = ["bin/main", "bin/build", "bin/detect", "buildpack.toml"]
+include-files = ["bin/run", "bin/build", "bin/detect", "buildpack.toml"]
 pre-package = "./scripts/build.sh"
 
 [[metadata.dependencies]]
