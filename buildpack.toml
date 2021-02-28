@@ -1,0 +1,25 @@
+api = "0.2"
+
+[buildpack]
+id = "petermylemans/elastic-apm"
+homepage = "https://github.com/petermylemans/elastic-apm"
+name = "Paketo Elastic-Apm Buildpack"
+
+[metadata]
+include-files = ["bin/main", "bin/build", "bin/detect", "buildpack.toml"]
+pre-package = "./scripts/build.sh"
+
+[[metadata.dependencies]]
+id = "elastic-apm-agent-java"
+name = "Elastic APM Java Agent"
+version = "1.21.0"
+uri = "https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.21.0/elastic-apm-agent-1.21.0.jar"
+sha256 = "74ccc15ae88174f9bce6f21d25a56ec060faaa4e27ddfe9562d7ad5905c9ec02"
+stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+
+[[metadata.dependencies.licenses]]
+type = "Apache License 2.0"
+uri = "https://github.com/elastic/apm-agent-java/blob/master/LICENSE"
+
+[[stacks]]
+id = "io.buildpacks.stacks.bionic"
