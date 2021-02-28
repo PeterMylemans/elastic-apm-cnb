@@ -32,6 +32,5 @@ func TestIntegration(t *testing.T) {
 
 	suite := spec.New("Integration", spec.Report(report.Terminal{}), spec.Parallel())
 	suite("Java", testJava)
-	suite("JavaReusesLayers", testJavaReusesLayers)
 	suite.Run(t)
 }

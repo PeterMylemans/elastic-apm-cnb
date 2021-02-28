@@ -6,7 +6,6 @@ import (
 	"github.com/paketo-buildpacks/packit/postal"
 	"github.com/paketo-buildpacks/packit/scribe"
 	"path/filepath"
-	"time"
 )
 
 //go:generate faux -i DependencyManager -o fakes/dependency_manager.go
@@ -70,7 +69,6 @@ func Build(dependencies DependencyManager, logger scribe.Logger) packit.BuildFun
 		layer.Cache = true
 		layer.Metadata = map[string]interface{}{
 			"dependency-sha": dependency.SHA256,
-			"built_at":       time.Now().Format(time.RFC3339Nano),
 		}
 
 		path := filepath.Join(layer.Path, "apm-java-agent.jar")
