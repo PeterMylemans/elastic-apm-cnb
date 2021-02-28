@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -61,7 +60,6 @@ func testJava(t *testing.T, context spec.G, it spec.S) {
 				).
 				Execute(name, source)
 			Expect(err).NotTo(HaveOccurred(), logs.String())
-			log.Print(logs.String())
 
 			container, err = docker.Container.Run.
 				WithPublish("8080").
@@ -69,6 +67,10 @@ func testJava(t *testing.T, context spec.G, it spec.S) {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(container).Should(BeAvailable())
+
+			logs, err = docker.Container.Logs.Execute(container.ID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(logs.String()).To(ContainSubstring("Tracer switched to RUNNING state"))
 		})
 	})
 }
