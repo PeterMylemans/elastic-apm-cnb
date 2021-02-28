@@ -98,6 +98,8 @@ func testJavaReusesLayers(t *testing.T, context spec.G, it spec.S) {
 			logs, err = docker.Container.Logs.Execute(container.ID)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(logs.String()).To(ContainSubstring("Tracer switched to RUNNING state"))
+
+			Expect(secondImage.Buildpacks[0].Layers["node"].Metadata["built_at"]).NotTo(Equal(firstImage.Buildpacks[0].Layers["node"].Metadata["built_at"]))
 		})
 	})
 }
