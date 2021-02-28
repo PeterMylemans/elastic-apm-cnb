@@ -28,49 +28,84 @@ func testJava(t *testing.T, context spec.G, it spec.S) {
 
 	context("when building a java app", func() {
 		var (
-			image     occam.Image
-			container occam.Container
-			name      string
-			source    string
+			imageIDs     map[string]struct{}
+			containerIDs map[string]struct{}
+			image        occam.Image
+			container    occam.Container
+			name         string
+			source       string
+			err          error
+			logs         fmt.Stringer
 		)
 
 		it.Before(func() {
-			var err error
 			name, err = occam.RandomName()
 			Expect(err).NotTo(HaveOccurred())
+			imageIDs = map[string]struct{}{}
+			containerIDs = map[string]struct{}{}
 		})
 
 		it.After(func() {
-			Expect(docker.Container.Remove.Execute(container.ID)).To(Succeed())
-			Expect(docker.Image.Remove.Execute(image.ID)).To(Succeed())
+			for id := range containerIDs {
+				Expect(docker.Container.Remove.Execute(id)).To(Succeed())
+			}
+
+			for id := range imageIDs {
+				Expect(docker.Image.Remove.Execute(id)).To(Succeed())
+			}
 			Expect(docker.Volume.Remove.Execute(occam.CacheVolumeNames(name))).To(Succeed())
 			Expect(os.RemoveAll(source)).To(Succeed())
 		})
 
 		it("builds an oci image that has the java agent injected", func() {
-			var err error
 			source, err = occam.Source(filepath.Join("testdata", "default_app"))
 			Expect(err).NotTo(HaveOccurred())
 
-			var logs fmt.Stringer
 			image, logs, err = pack.WithNoColor().Build.
 				WithBuildpacks(
 					"gcr.io/paketo-buildpacks/java:latest",
 					buildpack,
 				).
 				Execute(name, source)
-			Expect(err).NotTo(HaveOccurred(), logs.String())
+			Expect(err).NotTo(HaveOccurred(), logs)
+			imageIDs[image.ID] = struct{}{}
 
 			container, err = docker.Container.Run.
 				WithPublish("8080").
 				Execute(image.ID)
 			Expect(err).NotTo(HaveOccurred())
+			containerIDs[container.ID] = struct{}{}
 
 			Eventually(container).Should(BeAvailable())
 
 			logs, err = docker.Container.Logs.Execute(container.ID)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(logs.String()).To(ContainSubstring("Tracer switched to RUNNING state"))
+			Expect(logs).To(ContainSubstring("Tracer switched to RUNNING state"))
+
+			image, logs, err = pack.WithNoColor().Build.
+				WithBuildpacks(
+					"gcr.io/paketo-buildpacks/java:latest",
+					buildpack,
+				).
+				Execute(name, source)
+			Expect(err).NotTo(HaveOccurred(), logs)
+			imageIDs[image.ID] = struct{}{}
+			Expect(logs).To(ContainLines(
+				"Paketo Elastic-Apm Buildpack 1.2.3",
+				"  Reusing cached layer",
+			))
+
+			container, err = docker.Container.Run.
+				WithPublish("8080").
+				Execute(image.ID)
+			Expect(err).NotTo(HaveOccurred())
+			containerIDs[container.ID] = struct{}{}
+
+			Eventually(container).Should(BeAvailable())
+
+			logs, err = docker.Container.Logs.Execute(container.ID)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(logs).To(ContainSubstring("Tracer switched to RUNNING state"))
 		})
 	})
 }

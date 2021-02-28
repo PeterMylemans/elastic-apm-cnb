@@ -19,21 +19,56 @@ func Build(dependencies DependencyManager, logger scribe.Logger) packit.BuildFun
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 
-		logger.Process("Creating java agent layer")
-		layer, err := context.Layers.Get("agent")
-		if err != nil {
-			return packit.BuildResult{}, err
-		}
-
-		layer.Build = true
-		layer.Launch = true
-		layer.Cache = true
-
 		entry := context.Plan.Entries[0]
 
 		dependency, err := dependencies.Resolve(filepath.Join(context.CNBPath, "buildpack.toml"), entry.Name, "*", context.Stack)
 		if err != nil {
 			return packit.BuildResult{}, err
+		}
+
+		bom := packit.BuildpackPlan{
+			Entries: []packit.BuildpackPlanEntry{
+				{
+					Name: dependency.ID,
+					Metadata: map[string]interface{}{
+						"licenses": []string{},
+						"name":     dependency.Name,
+						"sha256":   dependency.SHA256,
+						"stacks":   dependency.Stacks,
+						"uri":      dependency.URI,
+						"version":  dependency.Version,
+					},
+				},
+			},
+		}
+
+		layer, err := context.Layers.Get("agent")
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		cachedSHA, ok := layer.Metadata["dependency-sha"].(string)
+		if ok && cachedSHA == dependency.SHA256 {
+			logger.Process("Reusing cached layer")
+			logger.Break()
+
+			return packit.BuildResult{
+				Plan:   bom,
+				Layers: []packit.Layer{layer},
+			}, nil
+		}
+
+		layer, err = layer.Reset()
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		logger.Process("Creating java agent layer")
+
+		layer.Launch = true
+		layer.Cache = true
+		layer.Metadata = map[string]interface{}{
+			"dependency-sha": dependency.SHA256,
 		}
 
 		path := filepath.Join(layer.Path, "apm-java-agent.jar")
@@ -48,21 +83,7 @@ func Build(dependencies DependencyManager, logger scribe.Logger) packit.BuildFun
 
 		logger.Break()
 		return packit.BuildResult{
-			Plan: packit.BuildpackPlan{
-				Entries: []packit.BuildpackPlanEntry{
-					{
-						Name: dependency.ID,
-						Metadata: map[string]interface{}{
-							"licenses": []string{},
-							"name":     dependency.Name,
-							"sha256":   dependency.SHA256,
-							"stacks":   dependency.Stacks,
-							"uri":      dependency.URI,
-							"version":  dependency.Version,
-						},
-					},
-				},
-			},
+			Plan:   bom,
 			Layers: []packit.Layer{layer},
 		}, nil
 	}
