@@ -1,9 +1,9 @@
 api = "0.2"
 
 [buildpack]
-id = "petermylemans/elastic-apm"
-homepage = "https://github.com/petermylemans/elastic-apm"
-name = "Paketo Elastic-Apm Buildpack"
+id = "petermylemans/elastic-apm-cnb"
+homepage = "https://github.com/petermylemans/elastic-apm-cnb"
+name = "Elastic APM Buildpack"
 
 [metadata]
 include-files = ["bin/run", "bin/build", "bin/detect", "buildpack.toml"]
@@ -23,3 +23,6 @@ uri = "https://github.com/elastic/apm-agent-java/blob/master/LICENSE"
 
 [[stacks]]
 id = "io.buildpacks.stacks.bionic"
+
+[[stacks]]
+id = "org.cloudfoundry.stacks.cflinuxfs3"
