@@ -91,7 +91,7 @@ func testJava(t *testing.T, context spec.G, it spec.S) {
 			Expect(err).NotTo(HaveOccurred(), logs)
 			imageIDs[image.ID] = struct{}{}
 			Expect(logs).To(ContainLines(
-				"Paketo Elastic-Apm Buildpack 1.2.3",
+				"Elastic APM Buildpack 1.2.3",
 				"  Reusing cached layer",
 			))
 
