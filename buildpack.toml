@@ -12,9 +12,9 @@ pre-package = "./scripts/build.sh"
 [[metadata.dependencies]]
 id = "elastic-apm-agent-java"
 name = "Elastic APM Java Agent"
-version = "1.24.0"
-uri = "https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.24.0/elastic-apm-agent-1.24.0.jar"
-sha256 = "e9ef0a51cab764d776fe55c40e549098e5068cd3c150e35e58a58c5d3ea20741"
+version = "1.25.0"
+uri = "https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.25.0/elastic-apm-agent-1.25.0.jar"
+sha256 = "de137c124c9bb5ebae418c2407615619254b4666649e67ee9092fc73dfd1bfdd"
 stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
 
 [[metadata.dependencies.licenses]]
